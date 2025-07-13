@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using VacationRequestAPIApp.DTOs;
 using VacationRequestAPIApp.DTOs.VacationRequests;
 using VacationRequestAPIApp.Interfaces;
 using VacationRequestAPIApp.Models;
@@ -24,10 +25,21 @@ namespace VacationRequestAPIApp.Services
             await unitOfWork.SaveAsync();
         }
 
-        public async Task<IEnumerable<VacationRequestReadDto>> GetAllVacationRequests()
+        public async Task<PagedResultDto<VacationRequestReadDto>> GetAllVacationRequests(int pageNumber, int pageSize)
         {
-           var VactionRequests=await unitOfWork.VacationRequests.GetAllAsync();
-            return mapper.Map<IEnumerable<VacationRequestReadDto>>(VactionRequests);
+           var allVactionRequests=await unitOfWork.VacationRequests.GetAllAsync();
+            var pagedVacationRequests = allVactionRequests
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            return new PagedResultDto<VacationRequestReadDto> 
+            {
+                Data = mapper.Map<IEnumerable<VacationRequestReadDto>>(pagedVacationRequests),
+                TotalCount = allVactionRequests.Count(),
+                PageNumber = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         public async Task<VacationRequestReadDto?> GetVacationRequestById(int id)
@@ -57,7 +69,7 @@ namespace VacationRequestAPIApp.Services
         {
             var holidays = (await unitOfWork.OfficialHolidays.GetAllAsync()).Where(h => h.Date > vacationDayTo).Select(h => h.Date).ToList();
             DateTime returningDate = vacationDayTo.AddDays(1);
-            while (vacationDayTo.DayOfWeek == DayOfWeek.Friday || vacationDayTo.DayOfWeek == DayOfWeek.Saturday || holidays.Contains(vacationDayTo)) 
+            while (vacationDayTo.DayOfWeek == DayOfWeek.Friday || vacationDayTo.DayOfWeek == DayOfWeek.Saturday || holidays.Contains(returningDate)) 
             {
                 returningDate = returningDate.AddDays(1);
             }

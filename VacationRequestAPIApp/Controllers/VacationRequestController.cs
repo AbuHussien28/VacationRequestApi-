@@ -19,9 +19,9 @@ namespace VacationRequestAPIApp.Controllers
         [HttpGet]
         [EndpointSummary("Get all vacation requests")]
         [EndpointDescription("Returns a list of all submitted vacation requests with calculated days and return date.")]
-        public async Task<IActionResult> GetAllVacationRequests()
+        public async Task<IActionResult> GetAllVacationRequests([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            var vacationRequests =await vacationRequestService.GetAllVacationRequests();
+            var vacationRequests =await vacationRequestService.GetAllVacationRequests(pageNumber,pageSize);
             return Ok(vacationRequests);
         }
         [HttpPost("NewRequest")]
@@ -36,7 +36,7 @@ namespace VacationRequestAPIApp.Controllers
             if (vacationRequestCreateDto.VacationDateFrom < DateTime.Now)
                 return BadRequest("Vacation start date cannot be in the past.");
             await vacationRequestService.CreateNewVacationRequest(vacationRequestCreateDto);
-            return Ok("Vacation request created successfully");
+            return Ok(new { message = "Vacation request created successfully" });
         }
         [HttpGet("{id}")]
         [EndpointSummary("Get vacation request by ID")]

@@ -24,6 +24,14 @@ namespace VacationRequestAPIApp
             builder.Services.AddDbContext<VacationContext>(options =>
             options.UseLazyLoadingProxies().UseSqlServer(builder.Configuration.GetConnectionString("VacationSystem")
             ));
+            builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowAll",
+                    policy => policy.AllowAnyOrigin()
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod());
+            });
+
             builder.Services.AddScoped<IUnitOfWork, UnitOfWork>();
             builder.Services.AddScoped(typeof(IGenericRepository<>), typeof(GenericRepository<>));
             builder.Services.AddAutoMapper(typeof(MappingProfile));
@@ -41,6 +49,7 @@ namespace VacationRequestAPIApp
             }
             app.UseHttpsRedirection();
             app.UseAuthorization();
+            app.UseCors("AllowAll");
             app.MapControllers();
             app.Run();
         }
